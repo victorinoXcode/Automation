@@ -2,8 +2,9 @@
 
 set -euo pipefail
 
-parallel_step="${BITBUCKET_PARALLEL_STEP:-0}"
-parallel_total="${BITBUCKET_PARALLEL_STEP_COUNT:-1}"
+# Support both Bitbucket's native sharding variables and generic CI fallbacks.
+parallel_step="${BITBUCKET_PARALLEL_STEP:-${CI_NODE_INDEX:-0}}"
+parallel_total="${BITBUCKET_PARALLEL_STEP_COUNT:-${CI_NODE_TOTAL:-1}}"
 project_args="${PW_PROJECT_ARGS:---project=chromium --project=system-management-chromium --project=Regression}"
 extra_args="${PW_EXTRA_ARGS:-}"
 shard_arg=""

@@ -9,6 +9,11 @@ const runTitle =
 const runDescription =
   process.env.QASE_TESTOPS_RUN_DESCRIPTION ?? "Parallel Playwright pipeline run";
 const outputPath = process.env.QASE_RUN_ID_FILE ?? ".qase/run-id.txt";
+const ciProvider = process.env.GITHUB_ACTIONS
+  ? "github-actions"
+  : process.env.BITBUCKET_BUILD_NUMBER
+    ? "bitbucket"
+    : "local";
 
 if (!token) {
   throw new Error("Missing QASE_TESTOPS_API_TOKEN/QASE_TOKEN");
@@ -30,7 +35,7 @@ const response = await fetch(`https://api.qase.io/v1/run/${projectCode}`, {
     description: runDescription,
     is_autotest: true,
     cases: [],
-    tags: ["bitbucket", "parallel"],
+    tags: [ciProvider, "parallel"],
   }),
 });
 

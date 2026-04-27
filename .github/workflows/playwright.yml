@@ -1,0 +1,476 @@
+name: Playwright CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Test suite to run
+        required: true
+        default: default
+        type: choice
+        options:
+          - default
+          - faaf
+          - user-management
+          - system-management
+          - regression-friday
+
+concurrency:
+  group: playwright-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: "true"
+  BASE_URL_PORTAL: ${{ secrets.BASE_URL_PORTAL }}
+  BASE_URL_DASHBOARD: ${{ secrets.BASE_URL_DASHBOARD }}
+  BASE_URL_CORE: ${{ secrets.BASE_URL_CORE }}
+  BASE_URL_API_GATEWAY: ${{ secrets.BASE_URL_API_GATEWAY }}
+  BASE_URL_AUTH: ${{ secrets.BASE_URL_AUTH }}
+  ZPO_EMAIL: ${{ secrets.ZPO_EMAIL }}
+  ZPO_PASSWORD: ${{ secrets.ZPO_PASSWORD }}
+  ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+  ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+  ADVISOR_EMAIL: ${{ secrets.ADVISOR_EMAIL }}
+  ADVISOR_PASSWORD: ${{ secrets.ADVISOR_PASSWORD }}
+  LOGIN_CLIENT_EMAIL: ${{ secrets.LOGIN_CLIENT_EMAIL }}
+  LOGIN_CLIENT_PASSWORD: ${{ secrets.LOGIN_CLIENT_PASSWORD }}
+  ADMIN_EMAIL_NON_PLUTUS: ${{ secrets.ADMIN_EMAIL_NON_PLUTUS }}
+  ADMIN_PASSWORD_NON_PLUTUS: ${{ secrets.ADMIN_PASSWORD_NON_PLUTUS }}
+  PM_EMAIL: ${{ secrets.PM_EMAIL }}
+  PM_PASSWORD: ${{ secrets.PM_PASSWORD }}
+  PROSPECT_EMAIL: ${{ secrets.PROSPECT_EMAIL }}
+  PROSPECT_PASSW: ${{ secrets.PROSPECT_PASSW }}
+  EA_EMAIL: ${{ secrets.EA_EMAIL }}
+  EA_PASSWORD: ${{ secrets.EA_PASSWORD }}
+  QASE_TOKEN: ${{ secrets.QASE_TOKEN }}
+  QASE_PROJECT: ${{ secrets.QASE_PROJECT }}
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run typecheck
+        run: pnpm run typecheck
+
+  default-suite:
+    name: Default Suite (${{ matrix.job_name }})
+    needs: typecheck
+    if: github.event_name != 'workflow_dispatch' || github.event.inputs.suite == 'default'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - job_name: regression-shard-1
+            pw_project_args: --project=chromium --project=Regression
+            pw_shard_index: 1
+            pw_shard_total: 2
+          - job_name: regression-shard-2
+            pw_project_args: --project=chromium --project=Regression
+            pw_shard_index: 2
+            pw_shard_total: 2
+          - job_name: system-management-full
+            pw_project_args: --project=system-management-chromium
+            pw_disable_sharding: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        env:
+          QASE_MODE: off
+          PW_PROJECT_ARGS: ${{ matrix.pw_project_args }}
+          PW_SHARD_INDEX: ${{ matrix.pw_shard_index }}
+          PW_SHARD_TOTAL: ${{ matrix.pw_shard_total }}
+          PW_DISABLE_SHARDING: ${{ matrix.pw_disable_sharding || 'false' }}
+        run: ./scripts/ci/run-playwright-shard.sh
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.job_name }}
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.job_name }}
+          path: test-results/
+          if-no-files-found: ignore
+
+  faaf-suite:
+    name: FAAF Suite (Shard ${{ matrix.shard_index }})
+    needs: typecheck
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'faaf'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1, 2]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        env:
+          QASE_MODE: off
+          PW_PROJECT_ARGS: --project=chromium
+          PW_EXTRA_ARGS: tests/core/faaf
+          PW_SHARD_INDEX: ${{ matrix.shard_index }}
+          PW_SHARD_TOTAL: 2
+        run: ./scripts/ci/run-playwright-shard.sh
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-faaf-${{ matrix.shard_index }}
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-faaf-${{ matrix.shard_index }}
+          path: test-results/
+          if-no-files-found: ignore
+
+  user-management-suite:
+    name: User Management (Shard ${{ matrix.shard_index }})
+    needs: typecheck
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'user-management'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1, 2]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        env:
+          QASE_MODE: off
+          PW_PROJECT_ARGS: --project=system-management-chromium
+          PW_SHARD_INDEX: ${{ matrix.shard_index }}
+          PW_SHARD_TOTAL: 2
+        run: ./scripts/ci/run-playwright-shard.sh
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-user-management-${{ matrix.shard_index }}
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-user-management-${{ matrix.shard_index }}
+          path: test-results/
+          if-no-files-found: ignore
+
+  system-management-suite:
+    name: System Management
+    needs: typecheck
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'system-management'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        env:
+          QASE_MODE: off
+          PW_PROJECT_ARGS: --project=system-management-chromium
+          PW_EXTRA_ARGS: tests/system-management
+          PW_DISABLE_SHARDING: "true"
+        run: ./scripts/ci/run-playwright-shard.sh
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-system-management
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-system-management
+          path: test-results/
+          if-no-files-found: ignore
+
+  friday-qase-prepare:
+    name: Friday Regression Prepare Qase
+    needs: typecheck
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    runs-on: ubuntu-latest
+    outputs:
+      run_id: ${{ steps.prepare.outputs.run_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prepare Qase run
+        id: prepare
+        env:
+          QASE_TESTOPS_RUN_TITLE: Friday Regression ${{ github.run_id }}
+        run: |
+          mkdir -p .qase
+          node scripts/ci/qase-create-run.mjs
+          echo "run_id=$(tr -d '\n' < .qase/run-id.txt)" >> "$GITHUB_OUTPUT"
+
+  friday-regression-suite:
+    name: Friday Regression (Shard ${{ matrix.shard_index }})
+    needs: friday-qase-prepare
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1, 2]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        env:
+          QASE_MODE: testops
+          QASE_TESTOPS_RUN_ID: ${{ needs.friday-qase-prepare.outputs.run_id }}
+          QASE_TESTOPS_RUN_COMPLETE: "false"
+          PW_PROJECT_ARGS: --project=chromium --project=Regression
+          PW_SHARD_INDEX: ${{ matrix.shard_index }}
+          PW_SHARD_TOTAL: 2
+        run: ./scripts/ci/run-playwright-shard.sh
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-friday-${{ matrix.shard_index }}
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-friday-${{ matrix.shard_index }}
+          path: test-results/
+          if-no-files-found: ignore
+
+  friday-system-management-suite:
+    name: Friday System Management
+    needs: friday-qase-prepare
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        env:
+          QASE_MODE: testops
+          QASE_TESTOPS_RUN_ID: ${{ needs.friday-qase-prepare.outputs.run_id }}
+          QASE_TESTOPS_RUN_COMPLETE: "false"
+          PW_PROJECT_ARGS: --project=system-management-chromium
+          PW_DISABLE_SHARDING: "true"
+        run: ./scripts/ci/run-playwright-shard.sh
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-friday-system-management
+          path: playwright-report/
+          if-no-files-found: ignore
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-friday-system-management
+          path: test-results/
+          if-no-files-found: ignore
+
+  friday-qase-complete:
+    name: Friday Regression Complete Qase
+    needs:
+      - friday-qase-prepare
+      - friday-regression-suite
+      - friday-system-management-suite
+    if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.15.0 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Complete Qase run
+        env:
+          QASE_RUN_ID_FILE: .qase/run-id.txt
+          QASE_TESTOPS_RUN_ID: ${{ needs.friday-qase-prepare.outputs.run_id }}
+        run: |
+          mkdir -p .qase
+          printf '%s\n' "${QASE_TESTOPS_RUN_ID}" > "${QASE_RUN_ID_FILE}"
+          node scripts/ci/qase-complete-run.mjs
