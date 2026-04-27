@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches:
+      - test
       - main
   workflow_dispatch:
     inputs:
@@ -25,33 +26,34 @@ concurrency:
 
 env:
   CI: "true"
-  BASE_URL_PORTAL: ${{ secrets.BASE_URL_PORTAL }}
-  BASE_URL_DASHBOARD: ${{ secrets.BASE_URL_DASHBOARD }}
-  BASE_URL_CORE: ${{ secrets.BASE_URL_CORE }}
-  BASE_URL_API_GATEWAY: ${{ secrets.BASE_URL_API_GATEWAY }}
-  BASE_URL_AUTH: ${{ secrets.BASE_URL_AUTH }}
-  ZPO_EMAIL: ${{ secrets.ZPO_EMAIL }}
-  ZPO_PASSWORD: ${{ secrets.ZPO_PASSWORD }}
-  ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-  ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-  ADVISOR_EMAIL: ${{ secrets.ADVISOR_EMAIL }}
-  ADVISOR_PASSWORD: ${{ secrets.ADVISOR_PASSWORD }}
-  LOGIN_CLIENT_EMAIL: ${{ secrets.LOGIN_CLIENT_EMAIL }}
-  LOGIN_CLIENT_PASSWORD: ${{ secrets.LOGIN_CLIENT_PASSWORD }}
-  ADMIN_EMAIL_NON_PLUTUS: ${{ secrets.ADMIN_EMAIL_NON_PLUTUS }}
-  ADMIN_PASSWORD_NON_PLUTUS: ${{ secrets.ADMIN_PASSWORD_NON_PLUTUS }}
-  PM_EMAIL: ${{ secrets.PM_EMAIL }}
-  PM_PASSWORD: ${{ secrets.PM_PASSWORD }}
-  PROSPECT_EMAIL: ${{ secrets.PROSPECT_EMAIL }}
-  PROSPECT_PASSW: ${{ secrets.PROSPECT_PASSW }}
-  EA_EMAIL: ${{ secrets.EA_EMAIL }}
-  EA_PASSWORD: ${{ secrets.EA_PASSWORD }}
-  QASE_TOKEN: ${{ secrets.QASE_TOKEN }}
-  QASE_PROJECT: ${{ secrets.QASE_PROJECT }}
+  BASE_URL_PORTAL: ${{ vars.BASE_URL_PORTAL || secrets.BASE_URL_PORTAL }}
+  BASE_URL_DASHBOARD: ${{ vars.BASE_URL_DASHBOARD || secrets.BASE_URL_DASHBOARD }}
+  BASE_URL_CORE: ${{ vars.BASE_URL_CORE || secrets.BASE_URL_CORE }}
+  BASE_URL_API_GATEWAY: ${{ vars.BASE_URL_API_GATEWAY || secrets.BASE_URL_API_GATEWAY }}
+  BASE_URL_AUTH: ${{ vars.BASE_URL_AUTH || secrets.BASE_URL_AUTH }}
+  ZPO_EMAIL: ${{ vars.ZPO_EMAIL || secrets.ZPO_EMAIL }}
+  ZPO_PASSWORD: ${{ vars.ZPO_PASSWORD || secrets.ZPO_PASSWORD }}
+  ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL || secrets.ADMIN_EMAIL }}
+  ADMIN_PASSWORD: ${{ vars.ADMIN_PASSWORD || secrets.ADMIN_PASSWORD }}
+  ADVISOR_EMAIL: ${{ vars.ADVISOR_EMAIL || secrets.ADVISOR_EMAIL }}
+  ADVISOR_PASSWORD: ${{ vars.ADVISOR_PASSWORD || secrets.ADVISOR_PASSWORD }}
+  LOGIN_CLIENT_EMAIL: ${{ vars.LOGIN_CLIENT_EMAIL || secrets.LOGIN_CLIENT_EMAIL }}
+  LOGIN_CLIENT_PASSWORD: ${{ vars.LOGIN_CLIENT_PASSWORD || secrets.LOGIN_CLIENT_PASSWORD }}
+  ADMIN_EMAIL_NON_PLUTUS: ${{ vars.ADMIN_EMAIL_NON_PLUTUS || secrets.ADMIN_EMAIL_NON_PLUTUS }}
+  ADMIN_PASSWORD_NON_PLUTUS: ${{ vars.ADMIN_PASSWORD_NON_PLUTUS || secrets.ADMIN_PASSWORD_NON_PLUTUS }}
+  PM_EMAIL: ${{ vars.PM_EMAIL || secrets.PM_EMAIL }}
+  PM_PASSWORD: ${{ vars.PM_PASSWORD || secrets.PM_PASSWORD }}
+  PROSPECT_EMAIL: ${{ vars.PROSPECT_EMAIL || secrets.PROSPECT_EMAIL }}
+  PROSPECT_PASSW: ${{ vars.PROSPECT_PASSW || secrets.PROSPECT_PASSW }}
+  EA_EMAIL: ${{ vars.EA_EMAIL || secrets.EA_EMAIL }}
+  EA_PASSWORD: ${{ vars.EA_PASSWORD || secrets.EA_PASSWORD }}
+  QASE_TOKEN: ${{ vars.QASE_TOKEN || secrets.QASE_TOKEN }}
+  QASE_PROJECT: ${{ vars.QASE_PROJECT || secrets.QASE_PROJECT }}
 
 jobs:
   typecheck:
     name: Typecheck
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -76,6 +78,7 @@ jobs:
     name: Default Suite (${{ matrix.job_name }})
     needs: typecheck
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.suite == 'default'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -140,6 +143,7 @@ jobs:
     name: FAAF Suite (Shard ${{ matrix.shard_index }})
     needs: typecheck
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'faaf'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -193,6 +197,7 @@ jobs:
     name: User Management (Shard ${{ matrix.shard_index }})
     needs: typecheck
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'user-management'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -245,6 +250,7 @@ jobs:
     name: System Management
     needs: typecheck
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'system-management'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -293,6 +299,7 @@ jobs:
     name: Friday Regression Prepare Qase
     needs: typecheck
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     outputs:
       run_id: ${{ steps.prepare.outputs.run_id }}
@@ -325,6 +332,7 @@ jobs:
     name: Friday Regression (Shard ${{ matrix.shard_index }})
     needs: friday-qase-prepare
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -379,6 +387,7 @@ jobs:
     name: Friday System Management
     needs: friday-qase-prepare
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -431,6 +440,7 @@ jobs:
       - friday-regression-suite
       - friday-system-management-suite
     if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
