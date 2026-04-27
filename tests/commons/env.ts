@@ -39,8 +39,9 @@ const envSchema = z.object({
   BASE_URL_PORTAL: z.url().optional(),
   BASE_URL_DASHBOARD: z.url().optional(),
   BASE_URL_CORE: z.url().optional(),
-  BASE_URL_API_GATEWAY: z.url().optional(),
-  BASE_URL_AUTH: z.url().optional(),
+  // Reserved for future API/auth flows; don't block Playwright bootstrap if they are unset or non-URL today.
+  BASE_URL_API_GATEWAY: z.string().optional(),
+  BASE_URL_AUTH: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
