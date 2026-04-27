@@ -118,7 +118,7 @@ jobs:
           PW_SHARD_INDEX: ${{ matrix.pw_shard_index }}
           PW_SHARD_TOTAL: ${{ matrix.pw_shard_total }}
           PW_DISABLE_SHARDING: ${{ matrix.pw_disable_sharding || 'false' }}
-        run: ./scripts/ci/run-playwright-shard.sh
+        run: bash ./scripts/ci/run-playwright-shard.sh
 
       - name: Upload Playwright report
         if: always()
@@ -171,7 +171,7 @@ jobs:
           PW_EXTRA_ARGS: tests/core/faaf
           PW_SHARD_INDEX: ${{ matrix.shard_index }}
           PW_SHARD_TOTAL: 2
-        run: ./scripts/ci/run-playwright-shard.sh
+        run: bash ./scripts/ci/run-playwright-shard.sh
 
       - name: Upload Playwright report
         if: always()
@@ -223,7 +223,7 @@ jobs:
           PW_PROJECT_ARGS: --project=system-management-chromium
           PW_SHARD_INDEX: ${{ matrix.shard_index }}
           PW_SHARD_TOTAL: 2
-        run: ./scripts/ci/run-playwright-shard.sh
+        run: bash ./scripts/ci/run-playwright-shard.sh
 
       - name: Upload Playwright report
         if: always()
@@ -271,7 +271,7 @@ jobs:
           PW_PROJECT_ARGS: --project=system-management-chromium
           PW_EXTRA_ARGS: tests/system-management
           PW_DISABLE_SHARDING: "true"
-        run: ./scripts/ci/run-playwright-shard.sh
+        run: bash ./scripts/ci/run-playwright-shard.sh
 
       - name: Upload Playwright report
         if: always()
@@ -357,7 +357,7 @@ jobs:
           PW_PROJECT_ARGS: --project=chromium --project=Regression
           PW_SHARD_INDEX: ${{ matrix.shard_index }}
           PW_SHARD_TOTAL: 2
-        run: ./scripts/ci/run-playwright-shard.sh
+        run: bash ./scripts/ci/run-playwright-shard.sh
 
       - name: Upload Playwright report
         if: always()
@@ -406,7 +406,7 @@ jobs:
           QASE_TESTOPS_RUN_COMPLETE: "false"
           PW_PROJECT_ARGS: --project=system-management-chromium
           PW_DISABLE_SHARDING: "true"
-        run: ./scripts/ci/run-playwright-shard.sh
+        run: bash ./scripts/ci/run-playwright-shard.sh
 
       - name: Upload Playwright report
         if: always()
