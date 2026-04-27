@@ -1,0 +1,256 @@
+# Playwright pipeline — runs on PRs and optionally on default branch
+# Repository variables (secured): BASE_URL_PORTAL, BASE_URL_DASHBOARD, BASE_URL_CORE,
+# ZPO_EMAIL, ZPO_PASSWORD, PM_EMAIL, PM_PASSWORD, ADVISOR_EMAIL, ADVISOR_PASSWORD, etc.
+# See docs/bitbucket-pipeline-variables.md for the full list.
+
+definitions:
+  caches:
+    pnpm: ~/.local/share/pnpm/store
+
+  steps:
+    - step: &playwright-typecheck
+        name: ZOE Typecheck
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm run typecheck
+    - step: &playwright-test-shard
+        name: Playwright ZOE
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          # Solo Chromium en CI (webkit/Mobile Safari se ejecutan en local si hace falta)
+          - export CI=true
+          - export QASE_MODE=off
+          - export PW_PROJECT_ARGS="${PW_PROJECT_ARGS:---project=chromium --project=Regression}"
+          - export PW_SHARD_TOTAL=2
+          - export PW_SHARD_INDEX=$((BITBUCKET_PARALLEL_STEP + 1))
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-system-management-full
+        name: Playwright ZOE System Management
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - export CI=true
+          - export QASE_MODE=off
+          - export PW_PROJECT_ARGS="--project=system-management-chromium"
+          - export PW_DISABLE_SHARDING=true
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-system-management
+        name: Playwright ZOE System Management
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - export CI=true
+          - export QASE_MODE=off
+          - export PW_PROJECT_ARGS="--project=system-management-chromium"
+          - export PW_SHARD_TOTAL=2
+          - export PW_SHARD_INDEX=$((BITBUCKET_PARALLEL_STEP + 1))
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-faaf
+        name: Playwright ZOE FAAF
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - export CI=true
+          - export QASE_MODE=off
+          - export PW_PROJECT_ARGS="--project=chromium"
+          - export PW_EXTRA_ARGS="tests/core/faaf"
+          - export PW_SHARD_TOTAL=2
+          - export PW_SHARD_INDEX=$((BITBUCKET_PARALLEL_STEP + 1))
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-friday-prepare-qase
+        name: Friday Regression ZOE Prepare Qase
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        script:
+          - mkdir -p .qase
+          - export QASE_TESTOPS_RUN_TITLE="Friday Regression $(date +%F)"
+          - node scripts/ci/qase-create-run.mjs
+        artifacts:
+          - .qase/**
+    - step: &playwright-friday-shard
+        name: Friday Regression ZOE
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - export QASE_MODE=testops
+          - export CI=true
+          - export QASE_TESTOPS_RUN_ID="$(cat .qase/run-id.txt)"
+          - export QASE_TESTOPS_RUN_COMPLETE=false
+          - export PW_PROJECT_ARGS="${PW_PROJECT_ARGS:---project=chromium --project=Regression}"
+          - export PW_SHARD_TOTAL=2
+          - export PW_SHARD_INDEX=$((BITBUCKET_PARALLEL_STEP + 1))
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-friday-system-management-full
+        name: Friday Regression ZOE System Management
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - export QASE_MODE=testops
+          - export CI=true
+          - export QASE_TESTOPS_RUN_ID="$(cat .qase/run-id.txt)"
+          - export QASE_TESTOPS_RUN_COMPLETE=false
+          - export PW_PROJECT_ARGS="--project=system-management-chromium"
+          - export PW_DISABLE_SHARDING=true
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-friday-system-management
+        name: Friday Regression ZOE System Management
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        caches:
+          - pnpm
+        script:
+          - corepack enable
+          - corepack prepare pnpm@9.15.0 --activate
+          - pnpm install --frozen-lockfile
+          - pnpm exec playwright install chromium
+          - export QASE_MODE=testops
+          - export CI=true
+          - export QASE_TESTOPS_RUN_ID="$(cat .qase/run-id.txt)"
+          - export QASE_TESTOPS_RUN_COMPLETE=false
+          - export PW_PROJECT_ARGS="--project=system-management-chromium"
+          - chmod +x scripts/ci/run-playwright-shard.sh
+          - ./scripts/ci/run-playwright-shard.sh
+        artifacts:
+          - playwright-report/**
+          - test-results/**
+    - step: &playwright-friday-complete-qase
+        name: Friday Regression ZOE Complete Qase
+        image: mcr.microsoft.com/playwright:v1.58.0-noble
+        script:
+          - node scripts/ci/qase-complete-run.mjs
+
+pipelines:
+  pull-requests:
+    "**":
+      - step: *playwright-typecheck
+      - parallel:
+          - step: *playwright-test-shard
+          - step: *playwright-test-shard
+          - step: *playwright-system-management-full
+
+  branches:
+    master:
+      - step: *playwright-typecheck
+      - parallel:
+          - step: *playwright-test-shard
+          - step: *playwright-test-shard
+          - step: *playwright-system-management-full
+
+  custom:
+    "FAAF Only":
+      - step: *playwright-typecheck
+      - parallel:
+          - step: *playwright-faaf
+          - step: *playwright-faaf
+    "User Management Only":
+      - step: *playwright-typecheck
+      - parallel:
+          - step: *playwright-system-management
+          - step: *playwright-system-management
+    "System Management Only":
+      - step: *playwright-typecheck
+      - parallel:
+          - step:
+              name: Playwright ZOE System Management Full
+              image: mcr.microsoft.com/playwright:v1.58.0-noble
+              caches:
+                - pnpm
+              script:
+                - corepack enable
+                - corepack prepare pnpm@9.15.0 --activate
+                - pnpm install --frozen-lockfile
+                - pnpm exec playwright install chromium
+                - export CI=true
+                - export QASE_MODE=off
+                - export PW_PROJECT_ARGS="--project=system-management-chromium"
+                - export PW_EXTRA_ARGS="tests/system-management"
+                - chmod +x scripts/ci/run-playwright-shard.sh
+                - ./scripts/ci/run-playwright-shard.sh
+              artifacts:
+                - playwright-report/**
+                - test-results/**
+          - step:
+              name: Playwright ZOE System Management Full
+              image: mcr.microsoft.com/playwright:v1.58.0-noble
+              caches:
+                - pnpm
+              script:
+                - corepack enable
+                - corepack prepare pnpm@9.15.0 --activate
+                - pnpm install --frozen-lockfile
+                - pnpm exec playwright install chromium
+                - export CI=true
+                - export QASE_MODE=off
+                - export PW_PROJECT_ARGS="--project=system-management-chromium"
+                - export PW_EXTRA_ARGS="tests/system-management"
+                - chmod +x scripts/ci/run-playwright-shard.sh
+                - ./scripts/ci/run-playwright-shard.sh
+              artifacts:
+                - playwright-report/**
+                - test-results/**
+    "Regression Friday":
+      - step: *playwright-typecheck
+      - step: *playwright-friday-prepare-qase
+      - parallel:
+          - step: *playwright-friday-shard
+          - step: *playwright-friday-shard
+          - step: *playwright-friday-system-management-full
+      - step: *playwright-friday-complete-qase

@@ -1,0 +1,82 @@
+import {expect, test} from "@playwright/test";
+import {qase} from "playwright-qase-reporter";
+
+import {AUTH_STORAGE_STATE} from "@/commons/auth";
+import {requireDashboardBaseUrl} from "@/commons/env";
+import {BasicInfoPage} from "@/pages/system-management/user-management/BasicInfoPage";
+import {UsersManagementPage} from "@/pages/system-management/user-management/UsersManagementPage";
+
+const ROLES_MATRIX_SPREADSHEET_ID =
+  "1UCXwc5FOAsoYdw2lr-yxwSxcpKBrJFhQ_0XQ5r6xDjs";
+const ROLES_MATRIX_GID = "1214946580";
+
+/**
+ * Given user detail is open, when clicking Learn more next to Role,
+ * then a new tab opens with the Google Drive roles matrix spreadsheet.
+ */
+async function runLearnMoreRoleOpensRolesMatrix(
+  page: import("@playwright/test").Page,
+  context: import("@playwright/test").BrowserContext,
+) {
+  const dashboardBase = requireDashboardBaseUrl();
+  const usersPage = new UsersManagementPage(page, dashboardBase);
+  await usersPage.goto();
+  await expect(page).toHaveURL(
+    `${dashboardBase}/dashboard/management/users`,
+  );
+
+  await usersPage.clickFirstUserRow();
+
+  const basicInfoPage = new BasicInfoPage(page);
+  await basicInfoPage.waitUntilLoaded();
+  await expect(basicInfoPage.learnMoreRoleLink).toBeVisible({timeout: 15_000});
+
+  const popupPromise = context
+    .waitForEvent("page", {timeout: 10_000})
+    .catch(() => null);
+  await basicInfoPage.clickLearnMoreRole();
+
+  const popup = await popupPromise;
+  const destinationPage = popup ?? page;
+  await expect(destinationPage).toHaveURL(
+    new RegExp(
+      `(docs\\.google\\.com/spreadsheets/d/${ROLES_MATRIX_SPREADSHEET_ID}|accounts\\.google\\.com.*${ROLES_MATRIX_SPREADSHEET_ID}).*gid=${ROLES_MATRIX_GID}`,
+    ),
+    {timeout: 20_000},
+  );
+
+  if (popup) {
+    await popup.close();
+  }
+}
+
+async function assertRoleFlow(
+  browser: import("@playwright/test").Browser,
+  storageState: string,
+) {
+  const context = await browser.newContext({storageState});
+  const page = await context.newPage();
+
+  try {
+    const dashboardBase = requireDashboardBaseUrl();
+    await page.goto(dashboardBase);
+    await expect(page).toHaveURL(
+      new RegExp(`${dashboardBase}/dashboard`),
+    );
+    await runLearnMoreRoleOpensRolesMatrix(page, context);
+  } finally {
+    await context.close().catch(() => {});
+  }
+}
+
+test.describe("ZPO/PM Learn More Button", () => {
+  test("PM Learn More Button", async ({browser}) => {
+    qase.id(999);
+    await assertRoleFlow(browser, AUTH_STORAGE_STATE.pm);
+  });
+
+  test("ZPO Learn More Button", async ({browser}) => {
+    qase.id(2098);
+    await assertRoleFlow(browser, AUTH_STORAGE_STATE.zpo);
+  });
+});
