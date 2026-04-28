@@ -149,6 +149,7 @@ jobs:
     name: FAAF Suite (Shard ${{ matrix.shard_index }})
     needs: typecheck
     if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'test') ||
       (github.event_name == 'push' && github.ref_name == 'test') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'faaf')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
@@ -205,6 +206,7 @@ jobs:
     name: User Management (Shard ${{ matrix.shard_index }})
     needs: typecheck
     if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'test') ||
       (github.event_name == 'push' && github.ref_name == 'test') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'user-management')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
@@ -260,6 +262,7 @@ jobs:
     name: System Management
     needs: typecheck
     if: >-
+      (github.event_name == 'pull_request' && github.base_ref == 'test') ||
       (github.event_name == 'push' && github.ref_name == 'test') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'system-management')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
