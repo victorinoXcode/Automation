@@ -6,6 +6,9 @@ on:
     branches:
       - test
       - main
+  schedule:
+    # 08:00 America/Bogota every Friday
+    - cron: "0 13 * * 5"
   workflow_dispatch:
     inputs:
       suite:
@@ -77,7 +80,10 @@ jobs:
   default-suite:
     name: Default Suite (${{ matrix.job_name }})
     needs: typecheck
-    if: github.event_name != 'workflow_dispatch' || github.event.inputs.suite == 'default'
+    if: >-
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push' && (github.ref_name == 'test' || github.ref_name == 'main')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'default')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
@@ -142,7 +148,9 @@ jobs:
   faaf-suite:
     name: FAAF Suite (Shard ${{ matrix.shard_index }})
     needs: typecheck
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'faaf'
+    if: >-
+      (github.event_name == 'push' && github.ref_name == 'test') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'faaf')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
@@ -196,7 +204,9 @@ jobs:
   user-management-suite:
     name: User Management (Shard ${{ matrix.shard_index }})
     needs: typecheck
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'user-management'
+    if: >-
+      (github.event_name == 'push' && github.ref_name == 'test') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'user-management')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
@@ -249,7 +259,9 @@ jobs:
   system-management-suite:
     name: System Management
     needs: typecheck
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'system-management'
+    if: >-
+      (github.event_name == 'push' && github.ref_name == 'test') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'system-management')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
@@ -298,7 +310,9 @@ jobs:
   friday-qase-prepare:
     name: Friday Regression Prepare Qase
     needs: typecheck
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     outputs:
@@ -331,7 +345,9 @@ jobs:
   friday-regression-suite:
     name: Friday Regression (Shard ${{ matrix.shard_index }})
     needs: friday-qase-prepare
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     strategy:
@@ -386,7 +402,9 @@ jobs:
   friday-system-management-suite:
     name: Friday System Management
     needs: friday-qase-prepare
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
@@ -439,7 +457,11 @@ jobs:
       - friday-qase-prepare
       - friday-regression-suite
       - friday-system-management-suite
-    if: always() && github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday'
+    if: >-
+      always() && (
+        github.event_name == 'schedule' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
+      )
     environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
     runs-on: ubuntu-latest
     steps:
