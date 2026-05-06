@@ -36,6 +36,9 @@
     "skipLibCheck": true,
 
     "paths": {
+      "@/pages/*": ["./pages/*"],
+      "@/commons/*": ["./tests/commons/*"],
+      "@/utils/*": ["./tests/utils/*"],
       "@/*": ["./tests/*"]
     }
   },
