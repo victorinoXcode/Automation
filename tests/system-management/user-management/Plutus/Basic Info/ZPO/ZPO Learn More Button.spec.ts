@@ -10,10 +10,6 @@ const ROLES_MATRIX_SPREADSHEET_ID =
   "1UCXwc5FOAsoYdw2lr-yxwSxcpKBrJFhQ_0XQ5r6xDjs";
 const ROLES_MATRIX_GID = "1214946580";
 
-/**
- * Given user detail is open, when clicking Learn more next to Role,
- * then a new tab opens with the Google Drive roles matrix spreadsheet.
- */
 async function runLearnMoreRoleOpensRolesMatrix(
   page: import("@playwright/test").Page,
   context: import("@playwright/test").BrowserContext,
@@ -52,9 +48,8 @@ async function runLearnMoreRoleOpensRolesMatrix(
 
 async function assertRoleFlow(
   browser: import("@playwright/test").Browser,
-  storageState: string,
 ) {
-  const context = await browser.newContext({storageState});
+  const context = await browser.newContext({storageState: AUTH_STORAGE_STATE.zpo});
   const page = await context.newPage();
 
   try {
@@ -69,14 +64,9 @@ async function assertRoleFlow(
   }
 }
 
-test.describe("ZPO/PM Learn More Button", () => {
-  test("PM Learn More Button", async ({browser}) => {
-    qase.id(999);
-    await assertRoleFlow(browser, AUTH_STORAGE_STATE.pm);
-  });
-
+test.describe("ZPO Learn More Button", () => {
   test("ZPO Learn More Button", async ({browser}) => {
     qase.id(2098);
-    await assertRoleFlow(browser, AUTH_STORAGE_STATE.zpo);
+    await assertRoleFlow(browser);
   });
 });

@@ -1,7 +1,7 @@
 import {expect, test} from "@playwright/test";
 import {qase} from "playwright-qase-reporter";
 
-import {AUTH_STORAGE_STATE, type AuthRole} from "@/commons/auth";
+import {AUTH_STORAGE_STATE} from "@/commons/auth";
 import {requireDashboardBaseUrl} from "@/commons/env";
 import {AddUserPage} from "@/pages/system-management/user-management/AddUserPage";
 import {BasicInfoPage} from "@/pages/system-management/user-management/BasicInfoPage";
@@ -13,30 +13,23 @@ const FIRST_NAME = "Advisor";
 const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
 const ROLE_NAME = "Advisor";
+const EMAIL_SUFFIX = "05";
 
-const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo" | "ea">, string> = {
-  pm: "05",
-  zpo: "06",
-  ea: "21",
-};
-
-function createAdvisorEmail(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
+function createAdvisorEmail() {
   const dateStamp = getFormattedDateMMDDYYYY();
-  const runSuffix = ROLE_EMAIL_SEQUENCE[role];
   const timestampSuffix = Date.now().toString().slice(-6);
-  return `zoe.qautomation+${dateStamp}${runSuffix}${timestampSuffix}@gmail.com`;
+  return `zoe.qautomation+${dateStamp}${EMAIL_SUFFIX}${timestampSuffix}@gmail.com`;
 }
 
-function createAdvisorFirstName(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
-  return `${FIRST_NAME} ${role.toUpperCase()}`;
+function createAdvisorFirstName() {
+  return `${FIRST_NAME} PM`;
 }
 
 async function assertCanCreateAdvisorUser(
   browser: import("@playwright/test").Browser,
-  role: Extract<AuthRole, "pm" | "zpo" | "ea">,
 ) {
   const context = await browser.newContext({
-    storageState: AUTH_STORAGE_STATE[role],
+    storageState: AUTH_STORAGE_STATE.pm,
   });
   const page = await context.newPage();
 
@@ -45,8 +38,8 @@ async function assertCanCreateAdvisorUser(
     const usersPage = new UsersManagementPage(page, dashboardBase);
     const addUserPage = new AddUserPage(page);
     const basicInfoPage = new BasicInfoPage(page);
-    const email = createAdvisorEmail(role);
-    const firstName = createAdvisorFirstName(role);
+    const email = createAdvisorEmail();
+    const firstName = createAdvisorFirstName();
 
     await usersPage.goto();
     await usersPage.openAddNewUser();
@@ -90,22 +83,12 @@ async function assertCanCreateAdvisorUser(
   }
 }
 
-test.describe("User Management Create Advisor", () => {
+test.describe("PM Create Advisor", () => {
   test.describe.configure({mode: "serial"});
   test.setTimeout(120_000);
 
   test("As PM Create new user with role Advisor", async ({browser}) => {
     qase.id(2166);
-    await assertCanCreateAdvisorUser(browser, "pm");
-  });
-
-  test("As ZPO Create new user with role Advisor", async ({browser}) => {
-    qase.id(2167);
-    await assertCanCreateAdvisorUser(browser, "zpo");
-  });
-
-  test("As EA Create new user with role Advisor", async ({browser}) => {
-    qase.id(2209);
-    await assertCanCreateAdvisorUser(browser, "ea");
+    await assertCanCreateAdvisorUser(browser);
   });
 });

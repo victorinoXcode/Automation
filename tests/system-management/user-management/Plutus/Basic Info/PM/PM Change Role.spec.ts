@@ -1,7 +1,7 @@
 import {expect, test} from "@playwright/test";
 import {qase} from "playwright-qase-reporter";
 
-import {AUTH_STORAGE_STATE, type AuthRole} from "@/commons/auth";
+import {AUTH_STORAGE_STATE} from "@/commons/auth";
 import {requireDashboardBaseUrl} from "@/commons/env";
 import {BasicInfoPage} from "@/pages/system-management/user-management/BasicInfoPage";
 import {UsersManagementPage} from "@/pages/system-management/user-management/UsersManagementPage";
@@ -75,10 +75,9 @@ async function openFirstEditableAdvisorUser(
 
 async function assertCanChangeRole(
   browser: import("@playwright/test").Browser,
-  authRole: AuthRole,
 ) {
   const context = await browser.newContext({
-    storageState: AUTH_STORAGE_STATE[authRole],
+    storageState: AUTH_STORAGE_STATE.pm,
   });
   const page = await context.newPage();
   const usersPage = new UsersManagementPage(page, requireDashboardBaseUrl());
@@ -104,17 +103,12 @@ async function assertCanChangeRole(
   }
 }
 
-test.describe("ZPO/PM Change Role", () => {
+test.describe("PM Change Role", () => {
   test.describe.configure({mode: "serial"});
   test.setTimeout(120_000);
 
   test("PM can change role for advisor user", async ({browser}) => {
     qase.id(1625);
-    await assertCanChangeRole(browser, "pm");
-  });
-
-  test("ZPO can change role for advisor user", async ({browser}) => {
-    qase.id(2099);
-    await assertCanChangeRole(browser, "zpo");
+    await assertCanChangeRole(browser);
   });
 });

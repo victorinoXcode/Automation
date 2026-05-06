@@ -3,7 +3,7 @@ import {rm} from "node:fs/promises";
 import {basename} from "node:path";
 import {qase} from "playwright-qase-reporter";
 
-import {AUTH_STORAGE_STATE, type AuthRole} from "@/commons/auth";
+import {AUTH_STORAGE_STATE} from "@/commons/auth";
 import {requireDashboardBaseUrl} from "@/commons/env";
 import {BasicInfoPage} from "@/pages/system-management/user-management/BasicInfoPage";
 import {UsersManagementPage} from "@/pages/system-management/user-management/UsersManagementPage";
@@ -13,9 +13,8 @@ const TARGET_USER_SEARCH = "zoe.qautomation+advisor@gmail.com";
 
 async function assertCanUploadAdvPart2B(
   browser: import("@playwright/test").Browser,
-  role: AuthRole,
 ) {
-  const filePath = await createDummyPdf(role, "upload-adv-part-2b");
+  const filePath = await createDummyPdf("pm", "upload-adv-part-2b");
   const fileName = basename(filePath);
   let context:
     | Awaited<ReturnType<typeof browser.newContext>>
@@ -26,7 +25,7 @@ async function assertCanUploadAdvPart2B(
 
   try {
     context = await browser.newContext({
-      storageState: AUTH_STORAGE_STATE[role],
+      storageState: AUTH_STORAGE_STATE.pm,
     });
     page = await context.newPage();
 
@@ -52,17 +51,12 @@ async function assertCanUploadAdvPart2B(
   }
 }
 
-test.describe("ZPO/PM Upload ADV Part 2B", () => {
+test.describe("PM Upload ADV Part 2B", () => {
   test.describe.configure({mode: "serial"});
   test.setTimeout(120_000);
 
   test("PM can upload ADV Part 2B document", async ({browser}) => {
     qase.id(1627);
-    await assertCanUploadAdvPart2B(browser, "pm");
-  });
-
-  test("ZPO can upload ADV Part 2B document", async ({browser}) => {
-    qase.id(2120);
-    await assertCanUploadAdvPart2B(browser, "zpo");
+    await assertCanUploadAdvPart2B(browser);
   });
 });
