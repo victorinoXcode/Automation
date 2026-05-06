@@ -11,7 +11,7 @@ import {
 } from "./tests/utils/auth";
 
 const PROJECT_AUTH_ROLES: Partial<Record<string, AuthRole[]>> = {
-  "system-management-chromium": ["pm", "zpo"],
+  "system-management-chromium": ["pm", "zpo", "ea"],
 };
 
 function getSelectedProjectNames() {

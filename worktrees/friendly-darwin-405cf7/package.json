@@ -1,0 +1,51 @@
+{
+  "name": "qa_automation",
+  "version": "2.0.0",
+  "description": "QA End-to-end Automation Repo",
+  "author": "Zoe Financial Inc.",
+  "homepage": "https://bitbucket.org/zoe-financial/qa_automation",
+  "keywords": [
+    "qa",
+    "automation",
+    "playwright",
+    "test"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=production playwright test",
+    "test": "playwright test",
+    "start:test": "playwright test",
+    "start:ui": "NODE_ENV=production playwright test --ui",
+    "start:test:ui": "playwright test --ui",
+    "start:debug": "playwright test --debug",
+    "start:headed": "playwright test --headed",
+    "start:headed:debug": "playwright test --headed --debug",
+    "start:headed:ui": "playwright test --headed --ui",
+    "start:qase": "QASE_MODE=testops playwright test",
+    "report": "playwright show-report",
+    "format": "biome check",
+    "format:fix": "biome check --write",
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit --watch",
+    "outdated": "pnpm outdated",
+    "audit": "pnpm audit",
+    "init:agents": "playwright init-agents --loop=vscode",
+    "postinstall": "node -e \"process.exit(process.env.CI ? 0 : 1)\" || npm run init:agents",
+    "prepush": "npm run format && npm run typecheck && npm run test"
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
+  "devDependencies": {
+    "@biomejs/biome": "2.3.13",
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^25.1.0",
+    "dotenv": "^17.2.3",
+    "husky": "^9.1.7",
+    "playwright-qase-reporter": "^2.2.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.2.0",
+    "zod": "^4.3.6"
+  }
+}

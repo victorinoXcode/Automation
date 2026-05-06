@@ -1,0 +1,73 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    // Editor config
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports.biome": "explicit",
+      "source.fixAll.biome": "explicit"
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.history": true,
+      "**/coverage": true,
+      "**/dist": true
+    },
+    "cSpell.words": ["faaf", "zoefin", "viewports"],
+    "biome.enabled": true,
+    "biome.requireConfiguration": true,
+    "prettier.documentSelectors": [],
+    // Native
+    "javascript.inlayHints.parameterNames.enabled": "none",
+    "typescript.inlayHints.parameterNames.enabled": "none",
+    "javascript.inlayHints.variableTypes.enabled": false,
+    "typescript.inlayHints.variableTypes.enabled": false,
+    "javascript.inlayHints.propertyDeclarationTypes.enabled": true,
+    "typescript.inlayHints.propertyDeclarationTypes.enabled": true,
+    "javascript.inlayHints.parameterTypes.enabled": false,
+    "typescript.inlayHints.parameterTypes.enabled": false,
+    "javascript.inlayHints.functionLikeReturnTypes.enabled": true,
+    "typescript.inlayHints.functionLikeReturnTypes.enabled": true,
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "tsimporter.spaceBetweenBraces": false,
+    "tsimporter.noStatusBar": true,
+    "[javascript]": {
+      "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[yaml]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "biomejs.biome"
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "biomejs.biome"
+    },
+    "workbench.tree.enableStickyScroll": true
+  },
+  "extensions": {
+    "recommendations": [
+      "biomejs.biome",
+      "dbaeumer.vscode-eslint",
+      "streetsidesoftware.code-spell-checker",
+      "eamodio.gitlens",
+      "mikestead.dotenv",
+      "xyz.local-history",
+      "pmneo.tsimporter",
+      "redhat.vscode-yaml",
+      "dongido.sync-env",
+      "ms-playwright.playwright"
+    ]
+  }
+}

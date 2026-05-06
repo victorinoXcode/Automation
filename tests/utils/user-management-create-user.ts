@@ -11,7 +11,7 @@ const COMPANY_NAME = "Automation Playwright";
 const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
 
-type CreateUserRole = Extract<AuthRole, "pm" | "zpo">;
+type CreateUserRole = Extract<AuthRole, "pm" | "zpo" | "ea">;
 
 export type CreateUserRoleConfig = {
   roleName: string;

@@ -8,7 +8,6 @@ import {BasicInfoPage} from "@/pages/system-management/user-management/BasicInfo
 import {UsersManagementPage} from "@/pages/system-management/user-management/UsersManagementPage";
 import {getFormattedDateMMDDYYYY} from "@/utils/math";
 
-const COMPANY_NAME = "Automation Playwright";
 const FIRST_NAME = "Advisor";
 const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
@@ -50,7 +49,6 @@ async function assertCanCreateAdvisorUser(
       lastName: LAST_NAME,
       email,
       phoneNumber: PHONE_NUMBER,
-      company: COMPANY_NAME,
       role: ROLE_NAME,
     });
     await addUserPage.submit();
@@ -77,7 +75,6 @@ async function assertCanCreateAdvisorUser(
     await expect(rowTexts.join(" ")).toContain(firstName);
     await expect(rowTexts.join(" ")).toContain(LAST_NAME);
     await expect(rowTexts.join(" ")).toContain(ROLE_NAME);
-    await expect(rowTexts.join(" ")).toContain(COMPANY_NAME);
   } finally {
     await context.close().catch(() => {});
   }

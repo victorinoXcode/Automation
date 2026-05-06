@@ -5,6 +5,7 @@ import {assertCanCreateUserWithRole} from "@/utils/user-management-create-user";
 
 const ROLE_CONFIG = {
   roleName: "Enterprise Admin",
+  requiresCompany: false,
   emailSuffixes: {
     ea: "28",
   },
