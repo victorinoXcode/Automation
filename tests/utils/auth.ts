@@ -45,11 +45,21 @@ export async function loginToDashboardAsRole(page: Page, role: AuthRole) {
   const baseUrl = requireDashboardBaseUrl().replace(/\/$/, "");
 
   try {
-    await page.goto(baseUrl, {waitUntil: "domcontentloaded", timeout: 30_000});
+    await page.goto(baseUrl, {waitUntil: "networkidle", timeout: 60_000});
   } catch (error) {
     const finalUrl = page.url();
     throw new Error(
       `Failed to navigate to ${baseUrl} during login for role "${role}". Final URL: ${finalUrl}. Error: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  try {
+    await page.locator("#username").waitFor({state: "visible", timeout: 30_000});
+  } catch (error) {
+    const finalUrl = page.url();
+    const pageTitle = await page.title().catch(() => "N/A");
+    throw new Error(
+      `Username field not found for role "${role}". Final URL: ${finalUrl}, Page title: ${pageTitle}. Error: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
