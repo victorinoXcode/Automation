@@ -12,25 +12,26 @@ const COMPANY_NAME = "Automation Playwright";
 const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
 
-const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo">, string> = {
+const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo" | "ea">, string> = {
   pm: "01",
   zpo: "02",
+  ea: "22",
 };
 
-function createAdvisorAsRepEmail(role: Extract<AuthRole, "pm" | "zpo">) {
+function createAdvisorAsRepEmail(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
   const dateStamp = getFormattedDateMMDDYYYY();
   const runSuffix = ROLE_EMAIL_SEQUENCE[role];
   const timestampSuffix = Date.now().toString().slice(-6);
   return `zoe.qautomation+${dateStamp}${runSuffix}${timestampSuffix}@gmail.com`;
 }
 
-function createAdvisorAsRepFirstName(role: Extract<AuthRole, "pm" | "zpo">) {
+function createAdvisorAsRepFirstName(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
   return `Advisor as Rep ${role.toUpperCase()}`;
 }
 
 async function assertCanCreateAdvisorAsRepUser(
   browser: import("@playwright/test").Browser,
-  role: Extract<AuthRole, "pm" | "zpo">,
+  role: Extract<AuthRole, "pm" | "zpo" | "ea">,
 ) {
   const context = await browser.newContext({
     storageState: AUTH_STORAGE_STATE[role],
@@ -98,5 +99,10 @@ test.describe("User Management Create Advisor as Rep", () => {
   test("As ZPO Create new user with role Advisor as Rep", async ({browser}) => {
     qase.id(2164);
     await assertCanCreateAdvisorAsRepUser(browser, "zpo");
+  });
+
+  test("As EA Create new user with role Advisor as Rep", async ({browser}) => {
+    qase.id(2210);
+    await assertCanCreateAdvisorAsRepUser(browser, "ea");
   });
 });

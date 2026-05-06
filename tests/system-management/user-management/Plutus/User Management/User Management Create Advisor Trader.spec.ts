@@ -14,25 +14,26 @@ const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
 const ROLE_NAME = "Advisor Trader";
 
-const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo">, string> = {
+const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo" | "ea">, string> = {
   pm: "07",
   zpo: "08",
+  ea: "23",
 };
 
-function createAdvisorTraderEmail(role: Extract<AuthRole, "pm" | "zpo">) {
+function createAdvisorTraderEmail(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
   const dateStamp = getFormattedDateMMDDYYYY();
   const runSuffix = ROLE_EMAIL_SEQUENCE[role];
   const timestampSuffix = Date.now().toString().slice(-6);
   return `zoe.qautomation+${dateStamp}${runSuffix}${timestampSuffix}@gmail.com`;
 }
 
-function createAdvisorTraderFirstName(role: Extract<AuthRole, "pm" | "zpo">) {
+function createAdvisorTraderFirstName(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
   return `${FIRST_NAME} ${role.toUpperCase()}`;
 }
 
 async function assertCanCreateAdvisorTraderUser(
   browser: import("@playwright/test").Browser,
-  role: Extract<AuthRole, "pm" | "zpo">,
+  role: Extract<AuthRole, "pm" | "zpo" | "ea">,
 ) {
   const context = await browser.newContext({
     storageState: AUTH_STORAGE_STATE[role],
@@ -101,5 +102,10 @@ test.describe("User Management Create Advisor Trader", () => {
   test("As ZPO Create new user with role Advisor Trader", async ({browser}) => {
     qase.id(2169);
     await assertCanCreateAdvisorTraderUser(browser, "zpo");
+  });
+
+  test("As EA Create new user with role Advisor Trader", async ({browser}) => {
+    qase.id(2211);
+    await assertCanCreateAdvisorTraderUser(browser, "ea");
   });
 });

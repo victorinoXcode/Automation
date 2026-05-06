@@ -14,25 +14,26 @@ const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
 const ROLE_NAME = "Advisor";
 
-const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo">, string> = {
+const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo" | "ea">, string> = {
   pm: "05",
   zpo: "06",
+  ea: "21",
 };
 
-function createAdvisorEmail(role: Extract<AuthRole, "pm" | "zpo">) {
+function createAdvisorEmail(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
   const dateStamp = getFormattedDateMMDDYYYY();
   const runSuffix = ROLE_EMAIL_SEQUENCE[role];
   const timestampSuffix = Date.now().toString().slice(-6);
   return `zoe.qautomation+${dateStamp}${runSuffix}${timestampSuffix}@gmail.com`;
 }
 
-function createAdvisorFirstName(role: Extract<AuthRole, "pm" | "zpo">) {
+function createAdvisorFirstName(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
   return `${FIRST_NAME} ${role.toUpperCase()}`;
 }
 
 async function assertCanCreateAdvisorUser(
   browser: import("@playwright/test").Browser,
-  role: Extract<AuthRole, "pm" | "zpo">,
+  role: Extract<AuthRole, "pm" | "zpo" | "ea">,
 ) {
   const context = await browser.newContext({
     storageState: AUTH_STORAGE_STATE[role],
@@ -101,5 +102,10 @@ test.describe("User Management Create Advisor", () => {
   test("As ZPO Create new user with role Advisor", async ({browser}) => {
     qase.id(2167);
     await assertCanCreateAdvisorUser(browser, "zpo");
+  });
+
+  test("As EA Create new user with role Advisor", async ({browser}) => {
+    qase.id(2209);
+    await assertCanCreateAdvisorUser(browser, "ea");
   });
 });

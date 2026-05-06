@@ -9,6 +9,7 @@ const ROLE_CONFIG = {
   emailSuffixes: {
     pm: "17",
     zpo: "18",
+    ea: "25",
   },
 } as const;
 
@@ -28,5 +29,12 @@ test.describe("User Management Create Portfolio Manager", () => {
   }) => {
     qase.id(2181);
     await assertCanCreateUserWithRole(browser, "zpo", ROLE_CONFIG);
+  });
+
+  test("As EA Create new user with role Portfolio Manager (PM)", async ({
+    browser,
+  }) => {
+    qase.id(2213);
+    await assertCanCreateUserWithRole(browser, "ea", ROLE_CONFIG);
   });
 });

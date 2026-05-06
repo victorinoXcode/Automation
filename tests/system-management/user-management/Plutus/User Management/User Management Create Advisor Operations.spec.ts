@@ -8,6 +8,7 @@ const ROLE_CONFIG = {
   emailSuffixes: {
     pm: "09",
     zpo: "10",
+    ea: "24",
   },
 } as const;
 
@@ -27,5 +28,12 @@ test.describe("User Management Create Advisor Operations", () => {
   }) => {
     qase.id(2176);
     await assertCanCreateUserWithRole(browser, "zpo", ROLE_CONFIG);
+  });
+
+  test("As EA Create new user with role Advisor Operations", async ({
+    browser,
+  }) => {
+    qase.id(2212);
+    await assertCanCreateUserWithRole(browser, "ea", ROLE_CONFIG);
   });
 });
