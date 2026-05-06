@@ -267,9 +267,16 @@ export class BasicInfoPage {
     throw new Error("Could not determine selected role in Basic Info");
   }
 
-  async getFirstAvailableAlternativeRole(currentRole: string): Promise<string> {
+  async getFirstAvailableAlternativeRole(
+    currentRole: string,
+    filter?: (role: string) => boolean,
+  ): Promise<string> {
     for (const roleName of this.supportedRoleOptions) {
       if (roleName === currentRole) {
+        continue;
+      }
+
+      if (filter && !filter(roleName)) {
         continue;
       }
 

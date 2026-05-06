@@ -44,8 +44,10 @@ async function openFirstEditableAdvisorUser(
     );
   }
 
-  const targetRole =
-    await basicInfoPage.getFirstAvailableAlternativeRole(initialRole);
+  const targetRole = await basicInfoPage.getFirstAvailableAlternativeRole(
+    initialRole,
+    (role) => isAdvisorRole(role),
+  );
   const initialLastName = await basicInfoPage.getLastNameValue();
   const updatedLastName = buildAlternativeLastName(initialLastName);
 
