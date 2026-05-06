@@ -44,7 +44,15 @@ export async function loginToDashboardAsRole(page: Page, role: AuthRole) {
 
   const baseUrl = requireDashboardBaseUrl().replace(/\/$/, "");
 
-  await page.goto(baseUrl, {waitUntil: "domcontentloaded"});
+  try {
+    await page.goto(baseUrl, {waitUntil: "domcontentloaded", timeout: 30_000});
+  } catch (error) {
+    const finalUrl = page.url();
+    throw new Error(
+      `Failed to navigate to ${baseUrl} during login for role "${role}". Final URL: ${finalUrl}. Error: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
   await page.locator("#username").fill(credentials.email);
   await page.getByRole("button", {name: "Continue"}).click();
   await page.locator("#password").waitFor({state: "visible", timeout: 60_000});

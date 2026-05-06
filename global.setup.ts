@@ -64,8 +64,16 @@ export default async function globalSetup(config: FullConfig) {
       const page = await context.newPage();
 
       try {
+        console.log(`[global.setup] Authenticating role: ${role}`);
         await loginToDashboardAsRole(page, role);
+        console.log(`[global.setup] Successfully authenticated role: ${role}`);
         await context.storageState({path: AUTH_STORAGE_STATE[role]});
+      } catch (error) {
+        console.error(
+          `[global.setup] Failed to authenticate role: ${role}`,
+          error instanceof Error ? error.message : String(error),
+        );
+        throw error;
       } finally {
         await context.close();
       }
