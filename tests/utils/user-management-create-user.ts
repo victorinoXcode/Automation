@@ -15,16 +15,16 @@ type CreateUserRole = Extract<AuthRole, "pm" | "zpo" | "ea">;
 
 export type CreateUserRoleConfig = {
   roleName: string;
-  emailSuffixes: Record<CreateUserRole, string>;
+  emailSuffixes: Partial<Record<CreateUserRole, string>>;
   requiresCompany?: boolean;
 };
 
 function createUserEmail(
   role: CreateUserRole,
-  emailSuffixes: Record<CreateUserRole, string>,
+  emailSuffixes: Partial<Record<CreateUserRole, string>>,
 ) {
   const dateStamp = getFormattedDateMMDDYYYY();
-  const runSuffix = emailSuffixes[role];
+  const runSuffix = emailSuffixes[role] ?? "";
   const timestampSuffix = Date.now().toString().slice(-6);
   return `zoe.qautomation+${dateStamp}${runSuffix}${timestampSuffix}@gmail.com`;
 }
