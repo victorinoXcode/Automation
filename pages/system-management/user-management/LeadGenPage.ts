@@ -196,12 +196,9 @@ export class LeadGenPage {
 
   async saveLeadGenProfile() {
     await this.saveChangesButton.click();
-    await expect(this.saveSuccessDialog).toBeVisible({timeout: 30_000});
-
-    if (await this.saveSuccessCloseButton.isVisible().catch(() => false)) {
-      await this.saveSuccessCloseButton.click();
-      await expect(this.saveSuccessDialog).toBeHidden({timeout: 30_000});
-    }
+    await expect(
+      this.page.getByText("Changes saved successfully").first(),
+    ).toBeVisible({timeout: 30_000});
   }
 
   private async selectFirstAvailableDropdownOption(

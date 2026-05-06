@@ -26,6 +26,10 @@ async function openFirstEditableAdvisorUser(
   await usersPage.openUserBySearch(TARGET_USER_SEARCH);
   await basicInfoPage.waitUntilLoaded();
 
+  if (await basicInfoPage.isAccessRemoved()) {
+    await basicInfoPage.restoreAccess();
+  }
+
   const initialFieldErrors = await basicInfoPage.getFieldErrors();
   if (initialFieldErrors.length > 0) {
     throw new Error(

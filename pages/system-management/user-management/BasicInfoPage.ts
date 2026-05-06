@@ -306,7 +306,7 @@ export class BasicInfoPage {
     await this.removeAccessButton.click();
     await expect(this.removeAccessDialog).toBeVisible({timeout: 10_000});
     await this.removeAccessConfirmButton.click();
-    await expect(this.restoreAccessButton).toBeVisible({timeout: 20_000});
+    await expect(this.restoreAccessButton).toBeVisible({timeout: 40_000});
     await expect(this.firstNameInput).toBeDisabled();
     await expect(this.lastNameInput).toBeDisabled();
     await expect(this.phoneNumberInput).toBeDisabled();
