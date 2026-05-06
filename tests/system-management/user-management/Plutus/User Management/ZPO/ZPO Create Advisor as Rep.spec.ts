@@ -1,7 +1,7 @@
 import {expect, test} from "@playwright/test";
 import {qase} from "playwright-qase-reporter";
 
-import {AUTH_STORAGE_STATE, type AuthRole} from "@/commons/auth";
+import {AUTH_STORAGE_STATE} from "@/commons/auth";
 import {requireDashboardBaseUrl} from "@/commons/env";
 import {AddUserPage} from "@/pages/system-management/user-management/AddUserPage";
 import {BasicInfoPage} from "@/pages/system-management/user-management/BasicInfoPage";
@@ -9,34 +9,25 @@ import {UsersManagementPage} from "@/pages/system-management/user-management/Use
 import {getFormattedDateMMDDYYYY} from "@/utils/math";
 
 const COMPANY_NAME = "Automation Playwright";
-const FIRST_NAME = "Advisor Trader";
 const LAST_NAME = "Regre";
 const PHONE_NUMBER = "3478481393";
-const ROLE_NAME = "Advisor Trader";
+const EMAIL_SUFFIX = "02";
 
-const ROLE_EMAIL_SEQUENCE: Record<Extract<AuthRole, "pm" | "zpo" | "ea">, string> = {
-  pm: "07",
-  zpo: "08",
-  ea: "23",
-};
-
-function createAdvisorTraderEmail(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
+function createAdvisorAsRepEmail() {
   const dateStamp = getFormattedDateMMDDYYYY();
-  const runSuffix = ROLE_EMAIL_SEQUENCE[role];
   const timestampSuffix = Date.now().toString().slice(-6);
-  return `zoe.qautomation+${dateStamp}${runSuffix}${timestampSuffix}@gmail.com`;
+  return `zoe.qautomation+${dateStamp}${EMAIL_SUFFIX}${timestampSuffix}@gmail.com`;
 }
 
-function createAdvisorTraderFirstName(role: Extract<AuthRole, "pm" | "zpo" | "ea">) {
-  return `${FIRST_NAME} ${role.toUpperCase()}`;
+function createAdvisorAsRepFirstName() {
+  return `Advisor as Rep ZPO`;
 }
 
-async function assertCanCreateAdvisorTraderUser(
+async function assertCanCreateAdvisorAsRepUser(
   browser: import("@playwright/test").Browser,
-  role: Extract<AuthRole, "pm" | "zpo" | "ea">,
 ) {
   const context = await browser.newContext({
-    storageState: AUTH_STORAGE_STATE[role],
+    storageState: AUTH_STORAGE_STATE.zpo,
   });
   const page = await context.newPage();
 
@@ -45,12 +36,12 @@ async function assertCanCreateAdvisorTraderUser(
     const usersPage = new UsersManagementPage(page, dashboardBase);
     const addUserPage = new AddUserPage(page);
     const basicInfoPage = new BasicInfoPage(page);
-    const email = createAdvisorTraderEmail(role);
-    const firstName = createAdvisorTraderFirstName(role);
+    const email = createAdvisorAsRepEmail();
+    const firstName = createAdvisorAsRepFirstName();
 
     await usersPage.goto();
     await usersPage.openAddNewUser();
-    await addUserPage.waitUntilLoaded(ROLE_NAME);
+    await addUserPage.waitUntilLoaded();
 
     await addUserPage.fillUserDetails({
       firstName,
@@ -58,7 +49,6 @@ async function assertCanCreateAdvisorTraderUser(
       email,
       phoneNumber: PHONE_NUMBER,
       company: COMPANY_NAME,
-      role: ROLE_NAME,
     });
     await addUserPage.submit();
     await addUserPage.waitForCreateResult();
@@ -70,7 +60,7 @@ async function assertCanCreateAdvisorTraderUser(
       await expect(basicInfoPage.phoneNumberInput).toHaveValue(
         new RegExp("347"),
       );
-      await expect(await basicInfoPage.getSelectedRole()).toBe(ROLE_NAME);
+      await expect(await basicInfoPage.getSelectedRole()).toBe("Advisor as Rep");
     }
 
     await usersPage.goto();
@@ -83,29 +73,19 @@ async function assertCanCreateAdvisorTraderUser(
     const rowTexts = await usersPage.getRowCellTexts(createdUserRow);
     await expect(rowTexts.join(" ")).toContain(firstName);
     await expect(rowTexts.join(" ")).toContain(LAST_NAME);
-    await expect(rowTexts.join(" ")).toContain(ROLE_NAME);
+    await expect(rowTexts.join(" ")).toContain("Advisor as Rep");
     await expect(rowTexts.join(" ")).toContain(COMPANY_NAME);
   } finally {
     await context.close().catch(() => {});
   }
 }
 
-test.describe("User Management Create Advisor Trader", () => {
+test.describe("ZPO Create Advisor as Rep", () => {
   test.describe.configure({mode: "serial"});
   test.setTimeout(120_000);
 
-  test("As PM Create new user with role Advisor Trader", async ({browser}) => {
-    qase.id(2168);
-    await assertCanCreateAdvisorTraderUser(browser, "pm");
-  });
-
-  test("As ZPO Create new user with role Advisor Trader", async ({browser}) => {
-    qase.id(2169);
-    await assertCanCreateAdvisorTraderUser(browser, "zpo");
-  });
-
-  test("As EA Create new user with role Advisor Trader", async ({browser}) => {
-    qase.id(2211);
-    await assertCanCreateAdvisorTraderUser(browser, "ea");
+  test("As ZPO Create new user with role Advisor as Rep", async ({browser}) => {
+    qase.id(2164);
+    await assertCanCreateAdvisorAsRepUser(browser);
   });
 });
