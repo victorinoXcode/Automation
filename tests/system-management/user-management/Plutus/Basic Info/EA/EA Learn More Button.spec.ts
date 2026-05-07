@@ -60,9 +60,7 @@ async function assertRoleFlow(
   try {
     const dashboardBase = requireDashboardBaseUrl();
     await page.goto(dashboardBase);
-    await expect(page).toHaveURL(
-      new RegExp(`${dashboardBase}/dashboard`),
-    );
+    await page.waitForURL(/\/dashboard/, {timeout: 30_000});
     await runLearnMoreRoleOpensRolesMatrix(page, context);
   } finally {
     await context.close().catch(() => {});

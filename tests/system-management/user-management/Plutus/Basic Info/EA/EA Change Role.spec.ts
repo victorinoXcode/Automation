@@ -26,6 +26,10 @@ async function openFirstEditableAdvisorUser(
   await usersPage.openUserBySearch(TARGET_USER_SEARCH);
   await basicInfoPage.waitUntilLoaded();
 
+  if (await basicInfoPage.isAccessRemoved()) {
+    await basicInfoPage.restoreAccess();
+  }
+
   const initialFieldErrors = await basicInfoPage.getFieldErrors();
   if (initialFieldErrors.length > 0) {
     throw new Error(
@@ -40,8 +44,10 @@ async function openFirstEditableAdvisorUser(
     );
   }
 
-  const targetRole =
-    await basicInfoPage.getFirstAvailableAlternativeRole(initialRole);
+  const targetRole = await basicInfoPage.getFirstAvailableAlternativeRole(
+    initialRole,
+    (role) => isAdvisorRole(role),
+  );
   const initialLastName = await basicInfoPage.getLastNameValue();
   const updatedLastName = buildAlternativeLastName(initialLastName);
 

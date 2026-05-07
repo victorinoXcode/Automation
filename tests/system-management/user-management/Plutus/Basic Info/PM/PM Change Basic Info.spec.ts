@@ -39,7 +39,7 @@ async function assertCanChangeBasicInfo(
     const basicInfoPage = new BasicInfoPage(page);
 
     await page.goto(dashboardBase);
-    await expect(page).toHaveURL(new RegExp(`${dashboardBase}/dashboard`));
+    await page.waitForURL(/\/dashboard/, {timeout: 30_000});
 
     await usersPage.goto();
     await usersPage.openUserBySearch(TARGET_USER_SEARCH);

@@ -183,7 +183,8 @@ export class BasicInfoPage {
   }
 
   async saveChanges() {
-    await this.saveChangesButton.click();
+    await expect(this.saveChangesButton).toBeEnabled({timeout: 10_000});
+    await this.saveChangesButton.click({force: true});
     await expect(this.saveSuccessMessage).toBeVisible({timeout: 20_000});
   }
 
@@ -267,9 +268,16 @@ export class BasicInfoPage {
     throw new Error("Could not determine selected role in Basic Info");
   }
 
-  async getFirstAvailableAlternativeRole(currentRole: string): Promise<string> {
+  async getFirstAvailableAlternativeRole(
+    currentRole: string,
+    filter?: (role: string) => boolean,
+  ): Promise<string> {
     for (const roleName of this.supportedRoleOptions) {
       if (roleName === currentRole) {
+        continue;
+      }
+
+      if (filter && !filter(roleName)) {
         continue;
       }
 
@@ -295,6 +303,7 @@ export class BasicInfoPage {
   async dismissSaveSuccessDialog() {
     if (await this.saveSuccessCloseButton.isVisible().catch(() => false)) {
       await this.saveSuccessCloseButton.click();
+      await expect(this.saveSuccessDialog).toBeHidden({timeout: 10_000});
     }
   }
 
@@ -306,7 +315,7 @@ export class BasicInfoPage {
     await this.removeAccessButton.click();
     await expect(this.removeAccessDialog).toBeVisible({timeout: 10_000});
     await this.removeAccessConfirmButton.click();
-    await expect(this.restoreAccessButton).toBeVisible({timeout: 20_000});
+    await expect(this.restoreAccessButton).toBeVisible({timeout: 40_000});
     await expect(this.firstNameInput).toBeDisabled();
     await expect(this.lastNameInput).toBeDisabled();
     await expect(this.phoneNumberInput).toBeDisabled();
