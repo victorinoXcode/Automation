@@ -319,13 +319,15 @@ jobs:
     if: >-
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
-    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
+    environment: Test
     runs-on: ubuntu-latest
     outputs:
       run_id: ${{ steps.prepare.outputs.run_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: test
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -354,7 +356,7 @@ jobs:
     if: >-
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
-    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
+    environment: Test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -363,6 +365,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: test
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -411,11 +415,13 @@ jobs:
     if: >-
       github.event_name == 'schedule' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
-    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
+    environment: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: test
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -468,11 +474,13 @@ jobs:
         github.event_name == 'schedule' ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.suite == 'regression-friday')
       )
-    environment: ${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'Main' || 'Test' }}
+    environment: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: test
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
