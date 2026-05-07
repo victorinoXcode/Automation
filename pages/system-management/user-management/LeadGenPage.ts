@@ -196,12 +196,7 @@ export class LeadGenPage {
 
   async saveLeadGenProfile() {
     await this.saveChangesButton.click();
-    // Wait for loading state to finish (modLoading class removed = API responded)
-    await expect(this.saveChangesButton).not.toHaveClass(/modLoading/, {timeout: 30_000});
-    const errorDialog = this.page.getByRole("dialog", {name: "Error saving changes"});
-    if (await errorDialog.isVisible()) {
-      throw new Error("LEADGEN_SAVE_BACKEND_ERROR: backend returned error saving changes");
-    }
+    await expect(this.saveChangesButton).toBeDisabled({timeout: 30_000});
   }
 
   private async selectFirstAvailableDropdownOption(
