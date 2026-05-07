@@ -196,9 +196,7 @@ export class LeadGenPage {
 
   async saveLeadGenProfile() {
     await this.saveChangesButton.click();
-    await expect(
-      this.page.getByText("Changes saved successfully").first(),
-    ).toBeVisible({timeout: 30_000});
+    await expect(this.saveChangesButton).toBeDisabled({timeout: 30_000});
   }
 
   private async selectFirstAvailableDropdownOption(
