@@ -196,12 +196,10 @@ export class LeadGenPage {
 
   async saveLeadGenProfile() {
     await this.saveChangesButton.click();
+    // Wait for the API to respond — button re-enables after success or error
+    await expect(this.saveChangesButton).toBeEnabled({timeout: 30_000});
     const errorDialog = this.page.getByRole("dialog", {name: "Error saving changes"});
-    const hasError = await errorDialog
-      .waitFor({state: "visible", timeout: 15_000})
-      .then(() => true)
-      .catch(() => false);
-    if (hasError) {
+    if (await errorDialog.isVisible()) {
       throw new Error("LEADGEN_SAVE_BACKEND_ERROR: backend returned error saving changes");
     }
   }
