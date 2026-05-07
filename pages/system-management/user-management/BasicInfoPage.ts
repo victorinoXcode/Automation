@@ -183,7 +183,8 @@ export class BasicInfoPage {
   }
 
   async saveChanges() {
-    await this.saveChangesButton.click();
+    await expect(this.saveChangesButton).toBeEnabled({timeout: 10_000});
+    await this.saveChangesButton.click({force: true});
     await expect(this.saveSuccessMessage).toBeVisible({timeout: 20_000});
   }
 
@@ -302,6 +303,7 @@ export class BasicInfoPage {
   async dismissSaveSuccessDialog() {
     if (await this.saveSuccessCloseButton.isVisible().catch(() => false)) {
       await this.saveSuccessCloseButton.click();
+      await expect(this.saveSuccessDialog).toBeHidden({timeout: 10_000});
     }
   }
 
