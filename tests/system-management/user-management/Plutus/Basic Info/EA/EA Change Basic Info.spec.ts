@@ -11,7 +11,7 @@ import {
   getRandomNumber,
 } from "@/utils/math";
 
-const TARGET_USER_SEARCH = "zoe.qautomation+advisor@gmail.com";
+const TARGET_USER_SEARCH = "zoe.qautomation+regre06022026@gmail.com";
 
 function createRandomBasicInfo(role: AuthRole) {
   const rolePrefix = role.toUpperCase();
@@ -40,6 +40,7 @@ async function assertCanChangeBasicInfo(
     const basicInfoPage = new BasicInfoPage(page);
 
     await page.goto(dashboardBase);
+    await page.waitForURL(/\/dashboard/, {timeout: 30_000});
 
     await usersPage.goto();
     await usersPage.openUserBySearch(TARGET_USER_SEARCH);
