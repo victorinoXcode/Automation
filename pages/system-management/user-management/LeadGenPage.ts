@@ -197,11 +197,11 @@ export class LeadGenPage {
   async saveLeadGenProfile() {
     await this.saveChangesButton.click();
     const errorDialog = this.page.getByRole("dialog", {name: "Error saving changes"});
-    const result = await Promise.race([
-      expect(this.saveChangesButton).toBeDisabled({timeout: 30_000}).then(() => "success"),
-      errorDialog.waitFor({state: "visible", timeout: 30_000}).then(() => "error"),
-    ]).catch(() => "timeout");
-    if (result === "error") {
+    const hasError = await errorDialog
+      .waitFor({state: "visible", timeout: 15_000})
+      .then(() => true)
+      .catch(() => false);
+    if (hasError) {
       throw new Error("LEADGEN_SAVE_BACKEND_ERROR: backend returned error saving changes");
     }
   }
