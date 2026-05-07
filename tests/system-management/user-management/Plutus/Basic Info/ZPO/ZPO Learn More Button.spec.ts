@@ -55,11 +55,7 @@ async function assertRoleFlow(
   try {
     const dashboardBase = requireDashboardBaseUrl();
     await page.goto(dashboardBase);
-    await page.waitForURL(/\/(dashboard|redirect)/, {timeout: 15_000});
-    if (page.url().includes("/redirect")) {
-      test.skip(true, "Dashboard redirected to /redirect — skipping unstable navigation");
-      return;
-    }
+    await page.waitForURL(/\/dashboard/, {timeout: 30_000});
     await runLearnMoreRoleOpensRolesMatrix(page, context);
   } finally {
     await context.close().catch(() => {});
