@@ -55,6 +55,7 @@ async function assertRoleFlow(
   try {
     const dashboardBase = requireDashboardBaseUrl();
     await page.goto(dashboardBase);
+    await page.waitForURL(/\/dashboard/, {timeout: 30_000});
     await runLearnMoreRoleOpensRolesMatrix(page, context);
   } finally {
     await context.close().catch(() => {});
